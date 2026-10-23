@@ -71,6 +71,28 @@ elif [ -n "$CXX_STANDARD" ]; then
     fail "CXX_STANDARD must be empty or 20"
 fi
 
+# Patch 4 (automatic): libtorrent master changed the disk_interface API on
+# 2026-10-19 (b64a59d). qBittorrent's CustomDiskIOThread no longer matches and
+# the build fails with "marked 'override', but does not override".
+qbt_patch_dir="$BUILD/patches/qbittorrent/${QBT_TAG#release-}"
+qbt_patch_file="$qbt_patch_dir/patch"
+bundle_patch="/bundle/patches/qbittorrent-async_check_files-lt-master.patch"
+lt_hdr="https://raw.githubusercontent.com/arvidn/libtorrent/${LT_TAG}/include/libtorrent/disk_interface.hpp"
+qbt_hdr="https://raw.githubusercontent.com/qbittorrent/qBittorrent/${QBT_TAG}/src/base/bittorrent/customstorage.h"
+lt_new_api=no; qbt_old_api=no
+curl -sSL "$lt_hdr"  | grep -q 'storage_error const&, typed_bitfield<piece_index_t>)' && lt_new_api=yes
+curl -sSL "$qbt_hdr" | grep -q 'std::function<void (lt::status_t, const lt::storage_error &)> handler) override' && qbt_old_api=yes
+[ -f "$qbt_patch_file" ] && cmp -s "$qbt_patch_file" "$bundle_patch" && rm -f "$qbt_patch_file"
+if [ "$lt_new_api" = yes ] && [ "$qbt_old_api" = yes ]; then
+    mkdir -p "$qbt_patch_dir"
+    cp "$bundle_patch" "$qbt_patch_file"
+    echo "async_check_files patch: WILL APPLY (libtorrent ${LT_TAG} has the new API, qBittorrent ${QBT_TAG} the old one)"
+elif [ "$lt_new_api" = yes ]; then
+    echo "async_check_files patch: not needed (qBittorrent ${QBT_TAG} already uses the new API)"
+else
+    echo "async_check_files patch: not needed (libtorrent ${LT_TAG} has the old API)"
+fi
+
 say "Installing build dependencies (a few minutes)"
 ./qbt.bash bootstrap_deps
 

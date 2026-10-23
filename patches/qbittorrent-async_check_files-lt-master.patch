@@ -1,0 +1,26 @@
+diff --git a/src/base/bittorrent/customstorage.cpp b/src/base/bittorrent/customstorage.cpp
+index 9da7d2b..ea52475 100644
+--- a/src/base/bittorrent/customstorage.cpp
++++ b/src/base/bittorrent/customstorage.cpp
+@@ -151,7 +151,7 @@ void CustomDiskIOThread::async_release_files(lt::storage_index_t storage, std::f
+ 
+ void CustomDiskIOThread::async_check_files(lt::storage_index_t storage, const lt::add_torrent_params *resume_data
+                                            , lt::aux::vector<std::string, lt::file_index_t> links
+-                                           , std::function<void (lt::status_t, const lt::storage_error &)> handler)
++                                           , std::function<void (lt::status_t, const lt::storage_error &, lt::typed_bitfield<lt::piece_index_t>)> handler)
+ {
+     handleCompleteFiles(storage, m_storageData[storage].savePath);
+     m_nativeDiskIO->async_check_files(storage, resume_data, std::move(links), std::move(handler));
+diff --git a/src/base/bittorrent/customstorage.h b/src/base/bittorrent/customstorage.h
+index 8d61362..1bacd45 100644
+--- a/src/base/bittorrent/customstorage.h
++++ b/src/base/bittorrent/customstorage.h
+@@ -80,7 +80,7 @@ public:
+     void async_release_files(lt::storage_index_t storage, std::function<void ()> handler) override;
+     void async_check_files(lt::storage_index_t storage, const lt::add_torrent_params *resume_data
+                            , lt::aux::vector<std::string, lt::file_index_t> links
+-                           , std::function<void (lt::status_t, const lt::storage_error &)> handler) override;
++                           , std::function<void (lt::status_t, const lt::storage_error &, lt::typed_bitfield<lt::piece_index_t>)> handler) override;
+     void async_stop_torrent(lt::storage_index_t storage, std::function<void ()> handler) override;
+     void async_rename_file(lt::storage_index_t storage, lt::file_index_t index, std::string name
+                            , std::function<void (const std::string &, lt::file_index_t, const lt::storage_error &)> handler) override;
