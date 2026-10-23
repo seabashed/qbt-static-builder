@@ -1,0 +1,18 @@
+# Builds a fully static qbittorrent-nox inside a throwaway Alpine container.
+#
+#   docker compose run --rm builder
+#
+# All options live in settings.env (plain text, next to this file).
+# The finished binary appears in ./output; build state is kept in ./work.
+
+services:
+  builder:
+    image: alpine:edge
+    working_dir: /qbt
+    env_file:
+      - settings.env
+    volumes:
+      - ./work:/qbt
+      - ./output:/output
+      - .:/bundle:ro
+    entrypoint: ["/bin/sh", "/bundle/build.sh"]

@@ -1,0 +1,44 @@
+name: Build qbittorrent-nox
+
+on:
+  workflow_dispatch:
+    inputs:
+      qbt_tag:
+        description: "qBittorrent version/tag (e.g. release-5.3.0)"
+        default: release-5.3.0
+      lt_tag:
+        description: "libtorrent branch/tag (master has connection reuse)"
+        default: master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply workflow inputs to settings.env
+        run: |
+          sed -i "s|^QBT_TAG=.*|QBT_TAG=${{ inputs.qbt_tag }}|" settings.env
+          sed -i "s|^LT_TAG=.*|LT_TAG=${{ inputs.lt_tag }}|" settings.env
+          cat settings.env
+
+      - name: Build
+        run: docker compose run --rm builder
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: qbittorrent-nox-${{ inputs.qbt_tag }}-libtorrent-${{ inputs.lt_tag }}
+          path: |
+            output/qbittorrent-nox-*
+            output/build-info.txt
+          if-no-files-found: error
+
+      - name: Upload logs (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: output/logs
+          if-no-files-found: ignore
