@@ -1,7 +1,7 @@
 # qbittorrent-nox static builder
 
 Builds a single-file, fully static `qbittorrent-nox` for 64-bit Linux: qBittorrent
-5.3.0 linked against the libtorrent `master` toconnection reuse.
+5.3.0 linked against the libtorrent `master` to enable connection reuse.
 
 Essentially a wrapper of [userdocs/qbittorrent-nox-static](https://github.com/userdocs/qbittorrent-nox-static).
 
